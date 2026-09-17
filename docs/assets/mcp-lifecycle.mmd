@@ -1,0 +1,27 @@
+sequenceDiagram
+    autonumber
+
+    actor User
+    participant Agent as LLM Agent / Host
+    participant Client as MCP Client
+    participant Server as MCP Server
+    participant Tool as Tools / Data Sources
+
+    User->>Agent: Send task / prompt
+
+    Agent->>Agent: Build context and decide whether<br/>external capability is needed
+
+    Agent->>Client: Request tool/resource via MCP
+
+    Client->>Server: MCP request<br/>(JSON-RPC 2.0)
+
+    Server->>Tool: Execute tool / query data source
+    Tool-->>Server: Return result / data
+
+    Server-->>Client: MCP response
+
+    Client-->>Agent: Return structured result
+
+    Agent->>Agent: Add result to context<br/>and continue reasoning
+
+    Agent-->>User: Final response
