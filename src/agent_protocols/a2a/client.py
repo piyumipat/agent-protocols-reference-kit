@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Mapping, Sequence
+from collections.abc import AsyncIterator, Callable, Mapping, Sequence
 from types import TracebackType
 from typing import Self
 
@@ -23,6 +23,10 @@ from a2a.types.a2a_pb2 import (
     Task,
     TaskState,
 )
+
+from agent_protocols.a2a.signing import VerifiedAgentCard, load_agent_card_json
+
+CardVerifier = Callable[[AgentCard | Mapping[str, object]], VerifiedAgentCard]
 
 
 class A2AClient:
@@ -46,6 +50,7 @@ class A2AClient:
         http_client: httpx.AsyncClient | None = None,
         card_path: str | None = None,
         interceptors: Sequence[ClientCallInterceptor] = (),
+        card_verifier: CardVerifier | None = None,
     ) -> None:
         self._target = target
         self._streaming = streaming
@@ -57,6 +62,8 @@ class A2AClient:
         self._owns_http_client = http_client is None
         self._card_path = card_path
         self._interceptors = list(interceptors)
+        self._card_verifier = card_verifier
+        self.verified_card: VerifiedAgentCard | None = None
         self._client: Client | None = None
 
     async def __aenter__(self) -> Self:
@@ -69,22 +76,45 @@ class A2AClient:
             )
         elif self._headers:
             self._http_client.headers.update(self._headers)
-        config = ClientConfig(
-            streaming=self._streaming,
-            polling=self._polling,
-            httpx_client=self._http_client,
-            supported_protocol_bindings=["JSONRPC"],
-            accepted_output_modes=self._accepted_output_modes,
-        )
-        self._client = await create_client(
-            self._target,
-            client_config=config,
-            interceptors=self._interceptors,
-            relative_card_path=self._card_path,
-            resolver_http_kwargs={"headers": self._headers},
-        )
-        await self._client.__aenter__()
-        return self
+        self.verified_card = None
+        try:
+            config = ClientConfig(
+                streaming=self._streaming,
+                polling=self._polling,
+                httpx_client=self._http_client,
+                supported_protocol_bindings=["JSONRPC"],
+                accepted_output_modes=self._accepted_output_modes,
+            )
+            target = self._target
+            if self._card_verifier is not None:
+                if isinstance(target, str):
+                    card_path = (self._card_path or "/.well-known/agent-card.json").lstrip("/")
+                    response = await self._http_client.get(
+                        f"{target.rstrip('/')}/{card_path}", headers=self._headers
+                    )
+                    response.raise_for_status()
+                    self.verified_card = self._card_verifier(
+                        load_agent_card_json(response.content)
+                    )
+                    target = self.verified_card.card
+                else:
+                    self.verified_card = self._card_verifier(target)
+                    target = self.verified_card.card
+            self._client = await create_client(
+                target,
+                client_config=config,
+                interceptors=self._interceptors,
+                relative_card_path=self._card_path,
+                resolver_http_kwargs={"headers": self._headers},
+            )
+            await self._client.__aenter__()
+            return self
+        except BaseException:
+            self._client = None
+            if self._owns_http_client and self._http_client is not None:
+                await self._http_client.aclose()
+                self._http_client = None
+            raise
 
     async def __aexit__(
         self,

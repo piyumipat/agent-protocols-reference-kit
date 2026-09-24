@@ -44,13 +44,43 @@ three-agent example deliberately keeps discovery public while requiring bearer
 authentication on every user-to-agent and agent-to-agent RPC call. Its static demo
 tokens are not suitable for production.
 
+Signed Agent Cards are optional. `sign_agent_card()` adds a JCS/JWS signature;
+`verify_agent_card()` checks a discovered card before its interfaces are used when
+passed to `A2AClient(card_verifier=...)`. The caller supplies a key source that
+receives the protected `kid` and optional `jku`, returns the matching public key,
+its source, and its expiry/revocation state. The kit does not fetch an untrusted
+`jku` automatically. A verified signature identifies the signing key; the caller
+decides which keys or providers to trust.
+
+For rotation, publish signatures from both keys while verifiers can resolve both.
+The verifier accepts a card when at least one signature uses a valid, current key;
+retired keys can then be marked revoked in the key source. Expired or revoked keys
+are never accepted. The verified key ID and source are returned to the caller.
+
+## Optional Send Message idempotency
+
+Enable `messageId` replay protection on a server with
+`create_server(card, executor, message_idempotency=MessageIdempotencyOptions())`.
+The same `messageId`, method, message, configuration, and requested extensions
+return the first result or ordered stream without another executor dispatch.
+Reusing an ID with different request content returns JSON-RPC invalid parameters.
+Concurrent duplicates wait for the first result, up to `wait_timeout_seconds`.
+
+The cache is scoped by tenant and authenticated username; anonymous callers share
+one scope per tenant. Configure `scope_resolver` if the application needs a different
+trusted caller identity. Entries expire `retention_seconds` after completion.
+`max_entries` and `max_cached_events` bound retention; a full cache, an interrupted
+original request, or a stream over the replay limit fails closed for duplicates.
+This store is process-local: use one server process for this guarantee. The protocol
+allows Send Message idempotency but does not require every server to offer it.
+
 ## Specification
 
 - [A2A specification v1.0.1](https://a2a-protocol.org/latest/specification/)
 - [Official A2A Python SDK](https://github.com/a2aproject/a2a-python)
 - [A2A Technology Compatibility Kit](https://github.com/a2aproject/a2a-tck)
 
-The dependency is constrained to `a2a-sdk[http-server]>=1.1.2,<2`. This kit does
+The dependency is constrained to `a2a-sdk[http-server,signing]>=1.1.2,<2`. This kit does
 not enable the SDK's v0.3 compatibility layer.
 
 ## Implementation coverage in this kit
@@ -59,6 +89,9 @@ Implemented:
 
 - Well-known Agent Card discovery; skills, modes, capabilities, security, and
   extension declarations.
+- Optional JCS/JWS Agent Card signing and verification during discovery, with
+  caller-provided key resolution and key-status checks.
+- Optional `messageId` idempotency for both Send Message methods in one process.
 - v1 JSON-RPC over HTTP with SDK interface selection, `A2A-Version`, and tenant
   propagation.
 - Text, structured data, URL, and inline raw-byte Parts. URL retrieval is left to
@@ -72,8 +105,8 @@ Implemented:
 - LLM-backed facts and review specialists plus an LLM-backed local coordinator;
   specialists' A2A Message responses become the coordinator's synthesis evidence.
 
-Deliberately deferred: REST and gRPC bindings, push notifications, extended and
-signed Agent Cards, extension-specific behavior, full multi-tenant hosting, v0.3
+Deliberately deferred: REST and gRPC bindings, push notifications, extended
+Agent Cards, extension-specific behavior, full multi-tenant hosting, v0.3
 compatibility, and durable SQL persistence. The in-memory store loses state on
 process restart. Push notification support remains deferred because receivers and
 sender URLs introduce additional authentication and SSRF controls.
@@ -84,6 +117,8 @@ sender URLs introduce additional authentication and SSRF controls.
 - `src/agent_protocols/a2a/server.py` — Starlette routes, handler, injected/default
   task store, middleware hooks, and shutdown.
 - `src/agent_protocols/a2a/client.py` — discovery and message/task client operations.
+- `src/agent_protocols/a2a/signing.py` — Agent Card JCS/JWS signing and verification.
+- `src/agent_protocols/a2a/idempotency.py` — bounded Send Message replay protection.
 - `examples/a2a/local_agent.py` — an A2A coordinator that combines two remote responses.
 - `examples/a2a/facts_agent.py` and `review_agent.py` — specialist remote A2A agents.
 - `examples/a2a/user.py` — the human-facing client that contacts the local agent over A2A.

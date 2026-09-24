@@ -33,10 +33,13 @@ http-server = [
     { name = "sse-starlette" },
     { name = "starlette" },
 ]
+signing = [
+    { name = "pyjwt" },
+]
 
 [[package]]
 name = "agent-protocols-reference-kit"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "openai" },
@@ -45,7 +48,9 @@ dependencies = [
 
 [package.optional-dependencies]
 a2a = [
-    { name = "a2a-sdk", extra = ["http-server"] },
+    { name = "a2a-sdk", extra = ["http-server", "signing"] },
+    { name = "jcs" },
+    { name = "pyjwt", extra = ["crypto"] },
     { name = "uvicorn" },
 ]
 agora = [
@@ -55,10 +60,12 @@ agora = [
     { name = "uvicorn" },
 ]
 all = [
-    { name = "a2a-sdk", extra = ["http-server"] },
+    { name = "a2a-sdk", extra = ["http-server", "signing"] },
     { name = "anp" },
     { name = "httpx" },
+    { name = "jcs" },
     { name = "mcp", extra = ["cli"] },
+    { name = "pyjwt", extra = ["crypto"] },
     { name = "pyyaml" },
     { name = "starlette" },
     { name = "uvicorn" },
@@ -72,10 +79,12 @@ mcp = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "a2a-sdk", extra = ["http-server"] },
+    { name = "a2a-sdk", extra = ["http-server", "signing"] },
     { name = "anp" },
+    { name = "jcs" },
     { name = "mcp", extra = ["cli"] },
     { name = "mypy" },
+    { name = "pyjwt", extra = ["crypto"] },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-timeout" },
@@ -87,15 +96,17 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "a2a-sdk", extras = ["http-server"], marker = "extra == 'a2a'", specifier = ">=1.1.2,<2" },
+    { name = "a2a-sdk", extras = ["http-server", "signing"], marker = "extra == 'a2a'", specifier = ">=1.1.2,<2" },
     { name = "agent-protocols-reference-kit", extras = ["a2a"], marker = "extra == 'all'" },
     { name = "agent-protocols-reference-kit", extras = ["agora"], marker = "extra == 'all'" },
     { name = "agent-protocols-reference-kit", extras = ["anp"], marker = "extra == 'all'" },
     { name = "agent-protocols-reference-kit", extras = ["mcp"], marker = "extra == 'all'" },
     { name = "anp", marker = "extra == 'anp'", specifier = "==1.0.3" },
     { name = "httpx", marker = "extra == 'agora'", specifier = ">=0.28" },
+    { name = "jcs", marker = "extra == 'a2a'", specifier = ">=0.2.1" },
     { name = "mcp", extras = ["cli"], marker = "extra == 'mcp'", specifier = ">=2.1.1" },
     { name = "openai", specifier = ">=3.5.0" },
+    { name = "pyjwt", extras = ["crypto"], marker = "extra == 'a2a'", specifier = ">=2.8,<3" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "pyyaml", marker = "extra == 'agora'", specifier = ">=6.0" },
     { name = "starlette", marker = "extra == 'agora'", specifier = ">=0.47" },
@@ -106,10 +117,12 @@ provides-extras = ["mcp", "a2a", "anp", "agora", "all"]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "a2a-sdk", extras = ["http-server"], specifier = ">=1.1.2,<2" },
+    { name = "a2a-sdk", extras = ["http-server", "signing"], specifier = ">=1.1.2,<2" },
     { name = "anp", specifier = "==1.0.3" },
+    { name = "jcs", specifier = ">=0.2.1" },
     { name = "mcp", extras = ["cli"], specifier = ">=2.1.1" },
     { name = "mypy" },
+    { name = "pyjwt", extras = ["crypto"], specifier = ">=2.8,<3" },
     { name = "pytest" },
     { name = "pytest-asyncio", specifier = ">=1.4.0" },
     { name = "pytest-timeout", specifier = ">=2.4.0" },

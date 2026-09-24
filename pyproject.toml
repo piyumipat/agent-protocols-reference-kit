@@ -1,6 +1,6 @@
 [project]
 name = "agent-protocols-reference-kit"
-version = "0.1.0"
+version = "0.2.0"
 description = "Standards-faithful implementations of major agent communication protocols"
 readme = "README.md"
 license = "MIT"
@@ -37,7 +37,9 @@ mcp = [
     "mcp[cli]>=2.1.1",
 ]
 a2a = [
-    "a2a-sdk[http-server]>=1.1.2,<2",
+    "a2a-sdk[http-server,signing]>=1.1.2,<2",
+    "PyJWT[crypto]>=2.8,<3",
+    "jcs>=0.2.1",
     "uvicorn>=0.35",
 ]
 anp = [
@@ -59,7 +61,9 @@ all = [
 [dependency-groups]
 dev = [
     "anp==1.0.3",
-    "a2a-sdk[http-server]>=1.1.2,<2",
+    "a2a-sdk[http-server,signing]>=1.1.2,<2",
+    "PyJWT[crypto]>=2.8,<3",
+    "jcs>=0.2.1",
     "mcp[cli]>=2.1.1",
     "PyYAML>=6.0",
     "pytest",

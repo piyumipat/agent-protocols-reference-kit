@@ -26,19 +26,32 @@ from a2a.types.a2a_pb2 import (
 
 from agent_protocols.a2a.cards import create_agent_card, create_skill
 from agent_protocols.a2a.client import A2AClient
+from agent_protocols.a2a.idempotency import MessageIdempotencyOptions
 from agent_protocols.a2a.server import create_server
+from agent_protocols.a2a.signing import (
+    AgentCardVerificationError,
+    CardKeySource,
+    ResolvedCardKey,
+    VerifiedAgentCard,
+    sign_agent_card,
+    verify_agent_card,
+)
 
 __all__ = [
     "A2AClient",
     "AgentCard",
+    "AgentCardVerificationError",
     "AgentExecutor",
     "AgentExtension",
     "AgentSkill",
+    "CardKeySource",
     "EventQueue",
     "InMemoryTaskStore",
     "Message",
+    "MessageIdempotencyOptions",
     "Part",
     "RequestContext",
+    "ResolvedCardKey",
     "Role",
     "SecurityRequirement",
     "SecurityScheme",
@@ -46,6 +59,7 @@ __all__ = [
     "Task",
     "TaskState",
     "TaskUpdater",
+    "VerifiedAgentCard",
     "create_agent_card",
     "create_server",
     "create_skill",
@@ -54,4 +68,6 @@ __all__ = [
     "new_raw_message",
     "new_text_message",
     "new_url_message",
+    "sign_agent_card",
+    "verify_agent_card",
 ]
