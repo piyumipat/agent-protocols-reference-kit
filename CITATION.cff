@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Agent Protocols Reference Kit"
+authors:
+  - family-names: Pathirathna
+    given-names: Piyumi
+  - family-names: Yazdani
+    given-names: Parva
+  - family-names: Thron
+    given-names: Mario
+version: 0.2.0
+date-released: 2026-09-24
+license: MIT
+repository-code: "https://github.com/piyumipat/agent-protocols-reference-kit"

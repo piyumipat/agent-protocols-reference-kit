@@ -3,7 +3,7 @@
 Reusable Python implementations of agent communication protocols, with runnable examples, tests,
 and documentation that identifies the targeted specifications and current implementation limits.
 
-This is a research-oriented reference kit. Version `0.1.0` is suitable for experiments and
+This is a research-oriented reference kit. Version `0.2.0` is suitable for experiments and
 prototypes; its APIs may change and should not yet be treated as a production security baseline.
 
 ## Implemented protocol integrations
@@ -140,6 +140,12 @@ uv run pytest
 uv run ruff check .
 uv run mypy src examples tests
 ```
+
+## Citation
+
+If you use this reference kit, cite it using the metadata in [`CITATION.cff`](CITATION.cff).
+For the version used in the industrial use-case experiment, cite release
+[`v0.2.0`](https://github.com/piyumipat/agent-protocols-reference-kit/releases/tag/v0.2.0).
 
 ## Contributing
 
